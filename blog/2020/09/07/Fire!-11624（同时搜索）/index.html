@@ -418,8 +418,119 @@
 <h5 id="思路："><a href="#思路：" class="headerlink" title="思路："></a>思路：</h5><p>visf数组记录该点火是否已经走过，visp数组记录该点人是否已经走过</p>
 <p>ft数组表示火到达该点时所需的时间，fp数组表示人走到该点时所需的时间，如果ft&lt;fp，说明人可以在火燃烧到该点前先行到达；反之，火先行到达，人无法出逃</p>
 <p>fq表示火的队列，对其bfs记录其到每点所需的时间；pq表示人的队列，对其bfs判断是否可以成功出逃</p>
-<h5 id="AC代码："><a href="#AC代码：" class="headerlink" title="AC代码："></a>AC代码：</h5><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> n;</span><br><span class="line">    <span class="built_in">cin</span>&gt;&gt;n;</span><br><span class="line">    <span class="built_in">cout</span>&lt;&lt;n;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="AC代码："><a href="#AC代码：" class="headerlink" title="AC代码："></a>AC代码：</h5><pre><code>#include&lt;iostream&gt;
+#include&lt;algorithm&gt;
+#include&lt;cmath&gt;
+#include&lt;queue&gt;
+#include&lt;map&gt;
+#include&lt;vector&gt;
+#include&lt;cstring&gt;
+#define ll long long
+#define MM(arr,x) memset(arr,x,sizeof(arr));
+using namespace std;
+const int INF = 0x3f3f3f3f;
+int T,n,m;
+char mp[1005][1005];
+int visf[1005][1005],visp[1005][1005];
+int ft[1005][1005],pt[1005][1005];
+int dir[][2]=&#123;0,1,0,-1,-1,0,1,0&#125;;
+struct node
+&#123;
+    int x,y;
+&#125;;
+node now,nex;
+queue&lt;node&gt; fq;
+queue&lt;node&gt; pq;
+void judge_time()//记录火到达可行点时所需的时间
+&#123;
+    while(!fq.empty())
+    &#123;
+        now = fq.front();
+        fq.pop();
+        for(int i=0;i&lt;4;i++)
+        &#123;
+            int nx = now.x + dir[i][0];
+            int ny = now.y + dir[i][1];
+            if(nx&gt;=0&amp;&amp;nx&lt;n&amp;&amp;ny&gt;=0&amp;&amp;ny&lt;m&amp;&amp;!visf[nx][ny]&amp;&amp;mp[nx][ny]!=&#39;#&#39;)
+            &#123;
+                nex.x = nx;
+                nex.y = ny;
+                visf[nx][ny] = 1;
+                fq.push(nex);
+                ft[nx][ny] = ft[now.x][now.y] + 1;
+            &#125;
+        &#125;
+    &#125;
+&#125; 
+void bfs()//广搜人是否能够到达
+&#123;
+    int A = 0;
+    while(!pq.empty())
+    &#123;
+        now = pq.front();
+        pq.pop();
+        if(now.x&lt;=0||now.x&gt;=n-1||now.y&lt;=0||now.y&gt;=m-1)
+        &#123;
+            A = 1;
+            cout&lt;&lt;pt[now.x][now.y]+1&lt;&lt;&#39;\n&#39;;
+            break;
+        &#125;
+        for(int i=0;i&lt;4;i++)
+        &#123;
+            nex.x = now.x + dir[i][0];
+            nex.y = now.y + dir[i][1];
+            if(nex.x&gt;=0&amp;&amp;nex.x&lt;n&amp;&amp;nex.y&gt;=0&amp;&amp;nex.y&lt;m&amp;&amp;!visp[nex.x][nex.y]
+            &amp;&amp;mp[nex.x][nex.y]==&#39;.&#39;&amp;&amp;pt[now.x][now.y]+1&lt;ft[nex.x][nex.y])
+            &#123;
+                visp[nex.x][nex.y] = 1;
+                pq.push(nex);
+                pt[nex.x][nex.y] = pt[now.x][now.y] + 1;
+            &#125;
+        &#125;
+    &#125;
+    if(!A) cout&lt;&lt;&quot;IMPOSSIBLE\n&quot;;
+&#125;
+int main()
+&#123;
+    cin&gt;&gt;T;
+    while(T--)
+    &#123;
+        MM(visf,0);
+        MM(visp,0);
+        MM(ft,INF);
+        MM(pt,INF);
+        cin&gt;&gt;n&gt;&gt;m;
+        for(int i=0;i&lt;n;i++)
+        &#123;
+            for(int j=0;j&lt;m;j++)
+            &#123;
+                cin&gt;&gt;mp[i][j];
+                if(mp[i][j]==&#39;J&#39;)
+                &#123;
+                    now.x = i;
+                    now.y = j;
+                    visp[i][j] = 1;
+                    pq.push(now);
+                    pt[i][j] = 0;
+                &#125;
+                if(mp[i][j]==&#39;F&#39;)
+                &#123;
+                    now.x = i;
+                    now.y = j;
+                    visf[i][j] = 1;
+                    fq.push(now);
+                    ft[i][j] = 0;
+                &#125;
+            &#125;
+        &#125;
+        judge_time();
+        bfs();
+        while(!fq.empty()) fq.pop();//清空队列
+        while(!pq.empty()) pq.pop();
+    &#125;
+    return 0;
 
+&#125;</code></pre>
 
         </div>
         <!-- .entry-content -->
